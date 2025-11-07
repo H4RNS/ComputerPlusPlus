@@ -1,10 +1,4 @@
-﻿using ComputerPlusPlus.Tools;
-using GorillaNetworking;
-using HarmonyLib;
-using Photon.Pun;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using GorillaNetworking;
 
 namespace ComputerPlusPlus.Screens
 {

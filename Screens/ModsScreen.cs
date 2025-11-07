@@ -1,12 +1,7 @@
-﻿using BepInEx;
-using BepInEx.Configuration;
+﻿using System;
+using System.Collections.Generic;
 using ComputerPlusPlus.Tools;
 using GorillaNetworking;
-using HarmonyLib;
-using Photon.Pun;
-using System;
-using System.Collections.Generic;
-using PluginInfo = BepInEx.PluginInfo;
 
 namespace ComputerPlusPlus.Screens
 {
@@ -27,7 +22,7 @@ namespace ComputerPlusPlus.Screens
         public string GetContent()
         {
             string content = "";
-            for(int i = 0; i < perPage; i++)
+            for (int i = 0; i < perPage; i++)
             {
                 if (i + page * perPage >= pluginInfos.Count)
                     break;
@@ -35,13 +30,13 @@ namespace ComputerPlusPlus.Screens
                 content += string.Format(Template,
                     plugin == selectedPlugin ? ">" : " ",
                     plugin.Instance.enabled ? ComputerManager.Instance.EnabledColor : ComputerManager.Instance.DisabledColor,
-                    plugin.Instance.enabled ? "On": "Off",
+                    plugin.Instance.enabled ? "On" : "Off",
                     plugin.Metadata.Name);
             }
             // if there is another page below, add a ...
             if (pluginInfos.Count > (page + 1) * perPage)
                 content += "     ...";
-            
+
             return content;
         }
 
@@ -62,7 +57,7 @@ namespace ComputerPlusPlus.Screens
                         page--;
                     break;
                 case "s":
-                    selectedPluginIndex++;  
+                    selectedPluginIndex++;
                     Logging.Debug("Selected plugin index:", selectedPluginIndex);
                     if (selectedPluginIndex >= pluginInfos.Count)
                     {
@@ -90,12 +85,12 @@ namespace ComputerPlusPlus.Screens
                 try
                 {
                     Logging.Debug("Found plugin:", plugin.Metadata.Name);
-                    if(plugin.Instance == Plugin.Instance)
+                    if (plugin.Instance == Plugin.Instance)
                     {
                         Logging.Debug("Skipping Computer++");
                         continue;
                     }
-                    if(plugin.Metadata.Name == "Utilla")
+                    if (plugin.Metadata.Name == "Utilla")
                     {
                         Logging.Debug("Skipping Utilla");
                         continue;

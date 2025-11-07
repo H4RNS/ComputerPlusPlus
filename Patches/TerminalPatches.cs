@@ -1,13 +1,10 @@
-﻿using ComputerPlusPlus.Tools;
-using GorillaExtensions;
+﻿using System.Collections.Generic;
+using ComputerPlusPlus.Tools;
 using GorillaLocomotion;
 using HarmonyLib;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
-using Utilla;
+
 
 namespace ComputerPlusPlus.Patches
 {
@@ -42,8 +39,8 @@ namespace ComputerPlusPlus.Patches
 
     public class ComputerMirror : MonoBehaviour
     {
-        public Text screenText, functionsText;
-        public Text originalScreenText, originalFunctionsText;
+        public TMP_Text screenText, functionsText;
+        public TMP_Text originalScreenText, originalFunctionsText;
         bool planeSet = false;
         Vector3 offset = new Vector3(-.21f, .41f, -.104f);
         Transform backgroundPlane;
@@ -78,7 +75,7 @@ namespace ComputerPlusPlus.Patches
         {
             RaycastHit hit;
             Ray ray = new Ray(screenText.transform.position, screenText.transform.forward);
-            if (Physics.Raycast(ray, out hit, 100f, Player.Instance.locomotionEnabledLayers))
+            if (Physics.Raycast(ray, out hit, 100f, GTPlayer.Instance.locomotionEnabledLayers))
             {
                 backgroundPlane.position = hit.point;
                 backgroundPlane.rotation = Quaternion.LookRotation(-hit.normal);

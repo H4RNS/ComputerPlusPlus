@@ -1,11 +1,4 @@
-﻿using ComputerPlusPlus.Tools;
-using GorillaNetworking;
-using HarmonyLib;
-using Photon.Pun;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using UnityEngine;
+﻿using GorillaNetworking;
 
 namespace ComputerPlusPlus.Screens
 {
@@ -19,7 +12,7 @@ namespace ComputerPlusPlus.Screens
             "Press [Option 3] for Push to Mute.\n" +
             "Press [Enter] to toggle voice chat.";
 
-        string template = 
+        string template =
             "    Mic Mode: {0}\n" +
             "    Voice Enabled: {1}\n";
 
@@ -28,7 +21,7 @@ namespace ComputerPlusPlus.Screens
             string mode = GorillaComputer.instance.pttType;
             string voice = GorillaComputer.instance.voiceChatOn;
             return string.Format(template, mode, voice);
-                
+
         }
 
         public void OnKeyPressed(GorillaKeyboardButton button)
@@ -41,7 +34,7 @@ namespace ComputerPlusPlus.Screens
                     ComputerManager.ComputerTraverse.Method("ProcessMicState", button).GetValue();
                     break;
                 case "enter":
-                    if(GorillaComputer.instance.voiceChatOn == "FALSE")
+                    if (GorillaComputer.instance.voiceChatOn == "FALSE")
                         ComputerManager.ComputerTraverse.Method(
                             "ProcessVoiceState",
                             ComputerManager.Keys["option1"]

@@ -31,12 +31,6 @@
     <Reference Include="BepInEx.Harmony">
       <HintPath>$(BepInExAssemblyPath)\BepInEx.Harmony.dll</HintPath>
     </Reference>
-    <Reference Include="Cinemachine">
-      <HintPath>$(GameAssemblyPath)\Cinemachine.dll</HintPath>
-    </Reference>
-    <Reference Include="clipper_library">
-      <HintPath>$(GameAssemblyPath)\clipper_library.dll</HintPath>
-    </Reference>
     <Reference Include="Mono.Security">
       <HintPath>$(GameAssemblyPath)\Mono.Security.dll</HintPath>
     </Reference>
@@ -85,11 +79,17 @@
     <Reference Include="Unity.Burst.Unsafe">
       <HintPath>$(GameAssemblyPath)\Unity.Burst.Unsafe.dll</HintPath>
     </Reference>
+    <Reference Include="Unity.Cinemachine">
+      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Gorilla Tag\Gorilla Tag_Data\Managed\Unity.Cinemachine.dll</HintPath>
+    </Reference>
     <Reference Include="Unity.InputSystem">
       <HintPath>$(GameAssemblyPath)\Unity.InputSystem.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Mathematics">
       <HintPath>$(GameAssemblyPath)\Unity.Mathematics.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.TextMeshPro">
+      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Gorilla Tag\Gorilla Tag_Data\Managed\Unity.TextMeshPro.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Timeline">
       <HintPath>$(GameAssemblyPath)\Unity.Timeline.dll</HintPath>
@@ -287,7 +287,7 @@
       <HintPath>$(GameAssemblyPath)\UnityEngine.XRModule.dll</HintPath>
     </Reference>
     <Reference Include="Utilla">
-      <HintPath>$(PluginsPath)\Utilla\Utilla.dll</HintPath>
+      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Gorilla Tag\BepInEx\plugins\Utilla.dll</HintPath>
     </Reference>
     <Reference Include="websocket-sharp">
       <HintPath>$(GameAssemblyPath)\websocket-sharp.dll</HintPath>

@@ -1,14 +1,10 @@
-﻿using BepInEx;
-using BepInEx.Configuration;
-using ComputerPlusPlus.Tools;
-using GorillaNetworking;
-using HarmonyLib;
-using Photon.Pun;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using BepInEx.Configuration;
+using ComputerPlusPlus.Tools;
+using GorillaNetworking;
 using UnityEngine;
 
 namespace ComputerPlusPlus.Screens
@@ -103,8 +99,9 @@ namespace ComputerPlusPlus.Screens
             {
                 yield return new WaitForSeconds(1f);
             }
-            GorillaComputer.instance.currentGameMode = gamemodeMap[gamemode.Value];
-            PhotonNetworkController.Instance.AttemptToJoinSpecificRoom(code.Value);
+            GorillaComputer.instance.currentGameMode.Value = gamemodeMap[gamemode.Value];
+            PhotonNetworkController.Instance.AttemptToJoinSpecificRoom(code.Value, JoinType.Solo);
         }
+
     }
 }

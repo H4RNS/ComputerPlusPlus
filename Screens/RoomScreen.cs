@@ -3,8 +3,6 @@ using GorillaNetworking;
 using HarmonyLib;
 using Photon.Pun;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace ComputerPlusPlus.Screens
 {
@@ -25,31 +23,59 @@ namespace ComputerPlusPlus.Screens
 
         public string GetContent()
         {
-            string code = PhotonNetwork.CurrentRoom?.Name;
-            string players = PhotonNetwork.CurrentRoom?.PlayerCount.ToString();
-            string roomToJoin = GorillaComputer.instance.roomToJoin;
-            return string.Format(Template, code, players, roomToJoin);
+            try
+            {
+                string code = PhotonNetwork.CurrentRoom?.Name ?? "N/A";
+                string players = (PhotonNetwork.CurrentRoom != null) ? PhotonNetwork.CurrentRoom.PlayerCount.ToString() : "0";
+                string roomToJoin = GorillaComputer.instance?.roomToJoin ?? "";
+
+                return string.Format(Template, code, players, roomToJoin);
+            }
+            catch (Exception e)
+            {
+                Logging.Exception(e);
+                return "Error loading room info.";
+            }
         }
+
 
         public void OnKeyPressed(GorillaKeyboardButton button)
         {
-            if (!button.IsFunctionKey() && GorillaComputer.instance.roomToJoin.Length < 10)
+            try
             {
-                GorillaComputer.instance.roomToJoin += button.characterString;
+                if (!button.IsFunctionKey() && GorillaComputer.instance?.roomToJoin != null &&
+                    GorillaComputer.instance.roomToJoin.Length < 10)
+                {
+                    GorillaComputer.instance.roomToJoin += button.characterString;
+                }
+
+                switch (button.characterString)
+                {
+                    case "delete":
+                        if (!string.IsNullOrEmpty(GorillaComputer.instance?.roomToJoin))
+                        {
+                            string code = GorillaComputer.instance.roomToJoin;
+                            GorillaComputer.instance.roomToJoin =
+                                code.Substring(0, Math.Max(0, code.Length - 1));
+                        }
+                        break;
+
+                    case "option1":
+                        NetworkSystem.Instance?.ReturnToSinglePlayer();
+                        break;
+
+                    case "enter":
+                        if (GorillaComputer.instance != null)
+                        {
+                            Traverse.Create(GorillaComputer.instance)
+                                .Method("ProcessRoomState", button)?.GetValue();
+                        }
+                        break;
+                }
             }
-            switch (button.characterString)
+            catch (Exception e)
             {
-                case "delete":
-                    string code = GorillaComputer.instance.roomToJoin;
-                    GorillaComputer.instance.roomToJoin = code.Substring(0, code.Length - 1);
-                    break;
-                case "option1":
-                    PhotonNetworkController.Instance.AttemptDisconnect();
-                    break;
-                case "enter":
-                    Traverse.Create(GorillaComputer.instance)
-                        .Method("ProcessRoomState", button).GetValue();
-                    break;
+                Logging.Exception(e);
             }
         }
 

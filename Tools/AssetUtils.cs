@@ -1,11 +1,10 @@
 ﻿using System;
 using System.IO;
-using UnityEngine;
 using System.Reflection;
 using BepInEx;
-using ComputerPlusPlus.Tools;
+using UnityEngine;
 
-namespace WalkSimulator.Tools
+namespace ComputerPlusPlus.Tools
 {
     public static class AssetUtils
     {

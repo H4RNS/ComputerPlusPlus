@@ -1,11 +1,4 @@
-﻿using ComputerPlusPlus.Tools;
-using GorillaNetworking;
-using HarmonyLib;
-using Photon.Pun;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using UnityEngine.Rendering;
+﻿using GorillaNetworking;
 
 namespace ComputerPlusPlus.Screens
 {
@@ -20,10 +13,10 @@ namespace ComputerPlusPlus.Screens
             if (counter > 10000)
             {
                 var text = "<color={0}>Really? You're <color={1}>that</color> bored?</color>";
-                text = string.Format(text, 
-                    ComputerManager.Instance.DisabledColor, 
+                text = string.Format(text,
+                    ComputerManager.Instance.DisabledColor,
                     ComputerManager.Instance.EnabledColor
-                ); 
+                );
                 result += "\n\n\n         " + text;
             }
             return result;

@@ -1,12 +1,11 @@
-﻿using ComputerPlusPlus.Tools;
+﻿using System;
+using System.Collections.Generic;
+using ComputerPlusPlus.Screens;
+using ComputerPlusPlus.Tools;
 using GorillaNetworking;
 using HarmonyLib;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
-using WalkSimulator.Tools;
 
 namespace ComputerPlusPlus
 {
@@ -24,8 +23,9 @@ namespace ComputerPlusPlus
         public Material backgroundMaterial;
 
         // Text
-        public Text screenText, originalScreenText;
-        public Text functionsText, originalFunctionText;
+        public TMP_Text screenText, originalScreenText;
+        public TMP_Text functionsText, originalFunctionText;
+
         public const string Divider = "==========================================\n";
         string screenContent, functionsContent;
         const int maxLines = 13;
@@ -35,7 +35,6 @@ namespace ComputerPlusPlus
         private static Dictionary<string, GorillaKeyboardButton> keys
             = new Dictionary<string, GorillaKeyboardButton>();
         public static Traverse ComputerTraverse;
-
 
         void Awake() => Instance = this;
 
@@ -50,37 +49,142 @@ namespace ComputerPlusPlus
             Screens.Remove(screen);
         }
 
-
         public void Initialize()
         {
-            currentScreen = Screens[currentScreenIndex];
-            ComputerTraverse = Traverse.Create(GorillaComputer.instance);
+            // guard: ensure there's at least one screen
+            if (Screens == null) Screens = new List<IScreen>();
+            if (Screens.Count == 0)
+            {
+                Logging.Warning("No screens registered in ComputerManager.Initialize()");
+            }
 
-            foreach (var button in FindObjectsOfType<GorillaKeyboardButton>())
-                keys.Add(button.characterString, button);
+            currentScreen = Screens.Count > 0 ? Screens[currentScreenIndex] : null;
 
-            var bundle = AssetUtils.LoadAssetBundle("ComputerPlusPlus/cppbundle");
-            font = bundle.LoadAsset<Font>("Font");
-            backgroundMaterial = Instantiate(bundle.LoadAsset<Material>("m_Unlit"));
-            backgroundMaterial.color = new Color(1 / 9f, 1 / 9f, 1 / 9f);
-            originalScreenText = Traverse.Create(GorillaComputer.instance.screenText).Field("text").GetValue<Text>();
-            screenText = CloneAndScale(originalScreenText);
+            // Guard: GorillaComputer.instance may not be present (avoid null access)
+            if (GorillaComputer.instance != null)
+            {
+                try
+                {
+                    ComputerTraverse = Traverse.Create(GorillaComputer.instance);
+                }
+                catch (Exception ex)
+                {
+                    Logging.Exception(ex);
+                    ComputerTraverse = null;
+                }
+            }
+            else
+            {
+                ComputerTraverse = null;
+                Logging.Warning("GorillaComputer.instance is null in ComputerManager.Initialize()");
+            }
 
-            originalFunctionText = Traverse.Create(GorillaComputer.instance.functionSelectText).Field("text").GetValue<Text>();
-            functionsText = CloneAndScale(originalFunctionText);
+            try
+            {
+                foreach (var button in FindObjectsOfType<GorillaKeyboardButton>())
+                {
+                    if (button == null) continue;
+                    var keyStr = button.characterString;
+                    if (string.IsNullOrEmpty(keyStr)) continue;
+
+                    if (!keys.ContainsKey(keyStr))
+                    {
+                        keys.Add(keyStr, button);
+                    }
+                    else
+                    {
+                        Logging.Debug($"Duplicate keyboard key found, skipping: {keyStr}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logging.Exception(ex);
+            }
+
+            // If GorillaComputer.instance is available, try to get and clone text fields
+            if (GorillaComputer.instance != null && ComputerTraverse != null)
+            {
+                try
+                {
+                    var origScreenTextObj = ComputerTraverse.Field("screenText").GetValue<TMP_Text>();
+                    originalScreenText = origScreenTextObj;
+                }
+                catch (Exception ex)
+                {
+                    Logging.Exception(ex);
+                    originalScreenText = null;
+                }
+
+                try
+                {
+                    var origFuncTextObj = ComputerTraverse.Field("functionSelectText").GetValue<TMP_Text>();
+                    originalFunctionText = origFuncTextObj;
+                }
+                catch (Exception ex)
+                {
+                    Logging.Exception(ex);
+                    originalFunctionText = null;
+                }
+
+                try
+                {
+                    if (originalScreenText != null)
+                        screenText = CloneAndScale(originalScreenText);
+                    if (originalFunctionText != null)
+                        functionsText = CloneAndScale(originalFunctionText);
+                }
+                catch (Exception ex)
+                {
+                    Logging.Exception(ex);
+                }
+            }
+            else
+            {
+                // If we couldn't find the computer/text, avoid using them later
+                originalScreenText = null;
+                originalFunctionText = null;
+                screenText = null;
+                functionsText = null;
+            }
+
             UpdateFunctions();
 
-            if (AssetUtils.LoadImageFromFile() is Texture2D texture)
+            try
             {
-                backgroundMaterial.mainTexture = texture;
-                backgroundPlane = GameObject.CreatePrimitive(PrimitiveType.Quad).transform;
-                backgroundPlane.name = "C++ Background Plane";
-                backgroundPlane.SetParent(screenText.transform.parent);
-                backgroundPlane.localPosition = new Vector3(0, -0.286f, 0.5f);
-                backgroundPlane.localScale = new Vector3(.7f, .4f, 1f);
-                backgroundPlane.localRotation = screenText.transform.localRotation;
-                backgroundPlane.gameObject.layer = LayerMask.NameToLayer("TransparentFX");
-                backgroundPlane.GetComponent<MeshRenderer>().material = backgroundMaterial;
+                if (Tools.AssetUtils.LoadImageFromFile() is Texture2D texture)
+                {
+                    if (backgroundMaterial == null)
+                    {
+                        var bundle = Tools.AssetUtils.LoadAssetBundle("ComputerPlusPlus/cppbundle");
+                        if (bundle != null)
+                        {
+                            font = bundle.LoadAsset<Font>("Font");
+                            backgroundMaterial = Instantiate(bundle.LoadAsset<Material>("m_Unlit"));
+                            backgroundMaterial.color = new Color(1 / 9f, 1 / 9f, 1 / 9f);
+                        }
+                    }
+
+                    if (backgroundMaterial != null)
+                    {
+                        backgroundMaterial.mainTexture = texture;
+                        backgroundPlane = GameObject.CreatePrimitive(PrimitiveType.Quad).transform;
+                        backgroundPlane.name = "C++ Background Plane";
+                        if (screenText != null)
+                            backgroundPlane.SetParent(screenText.transform.parent);
+                        backgroundPlane.localPosition = new Vector3(0, -0.286f, 0.5f);
+                        backgroundPlane.localScale = new Vector3(.7f, .4f, 1f);
+                        backgroundPlane.localRotation = screenText != null ? screenText.transform.localRotation : Quaternion.identity;
+                        backgroundPlane.gameObject.layer = LayerMask.NameToLayer("TransparentFX");
+                        var mr = backgroundPlane.GetComponent<MeshRenderer>();
+                        if (mr != null)
+                            mr.material = backgroundMaterial;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logging.Exception(ex);
             }
 
             foreach (var screen in Screens)
@@ -96,9 +200,9 @@ namespace ComputerPlusPlus
             }
         }
 
-        public Text CloneAndScale(Text original, float scaleDelta = -0.1f)
+        public TMP_Text CloneAndScale(TMP_Text original, float scaleDelta = -0.1f)
         {
-            Text clone = Instantiate(original);
+            TMP_Text clone = Instantiate(original);
             clone.transform.SetParent(original.transform.parent);
             clone.transform.localPosition = original.transform.localPosition;
             clone.transform.localScale = original.transform.localScale;
@@ -111,15 +215,17 @@ namespace ComputerPlusPlus
                 clone.rectTransform.localScale.y * (1 + scaleDelta),
                 clone.rectTransform.localScale.z * (1 + scaleDelta));
             original.enabled = false;
-            clone.font = font;
             clone.fontSize = 10;
-            clone.supportRichText = true;
+            clone.enableWordWrapping = false;
+            clone.richText = true;
             clone.name = "C++ " + original.name;
             return clone;
         }
 
         public void OnKeyPressed(GorillaKeyboardButton button)
         {
+            if (button == null) return;
+
             if (button.characterString == "up")
             {
                 // Decrement the current screen index
@@ -156,7 +262,15 @@ namespace ComputerPlusPlus
                 currentScreen = Screens[currentScreenIndex];
                 UpdateFunctions();
             }
-            currentScreen.OnKeyPressed(button);
+
+            try
+            {
+                currentScreen?.OnKeyPressed(button);
+            }
+            catch (Exception ex)
+            {
+                Logging.Exception(ex);
+            }
         }
 
         void UpdateFunctions()
@@ -182,13 +296,13 @@ namespace ComputerPlusPlus
                 FunctionsText += " ...";
         }
 
-        string Template =
-            "{0}\n" +
-            Divider +
-            "{1}\n" +
-            Divider +
-            "\n" +
-            "{2}\n";
+        /* string Template =
+             "{0}\n" +
+             Divider +
+             "{1}\n" +
+             Divider +
+             "\n" +
+             "{2}\n";*/
 
         void FixedUpdate()
         {
@@ -200,27 +314,42 @@ namespace ComputerPlusPlus
             if (originalFunctionText)
                 originalFunctionText.enabled = false;
             var text = "";
-            if (currentScreen.Title.Length > 0) {
-                text += Center(currentScreen.Title.ToUpper()) + "\n";
-                text += Divider;
-            }
-            if (currentScreen.Description.Length > 0)
+
+            try
             {
-                text += currentScreen.Description.ToUpper() + "\n";
-                text += Divider;
+                if (!string.IsNullOrEmpty(currentScreen?.Title))
+                {
+                    text += Center(currentScreen.Title.ToUpper()) + "\n";
+                    text += Divider;
+                }
+                if (!string.IsNullOrEmpty(currentScreen?.Description))
+                {
+                    text += currentScreen.Description.ToUpper() + "\n";
+                    text += Divider;
+                }
+
+                // SAFE: protect against null content from screens
+                var content = currentScreen?.GetContent();
+                if (content == null) content = "";
+                text += content.ToUpper();
+
+                ScreenText = text;
             }
-            text += currentScreen.GetContent().ToUpper();
-            ScreenText = text;
+            catch (Exception ex)
+            {
+                // Catch and log any screen content formatting errors to prevent spam/crash
+                Logging.Exception(ex);
+            }
         }
 
 
 
         void OnDisable()
         {
-            screenText.enabled = false;
-            functionsText.enabled = false;
-            originalFunctionText.enabled = true;
-            originalScreenText.enabled = true;
+            if (screenText != null) screenText.enabled = false;
+            if (functionsText != null) functionsText.enabled = false;
+            if (originalFunctionText != null) originalFunctionText.enabled = true;
+            if (originalScreenText != null) originalScreenText.enabled = true;
         }
 
         public static string Center(string text, char padWith = ' ')
@@ -288,12 +417,16 @@ namespace ComputerPlusPlus
 
         public static GorillaKeyboardButton GetKey(string key)
         {
-            return keys[key];
+            if (string.IsNullOrEmpty(key)) return null;
+            if (keys.TryGetValue(key, out var btn)) return btn;
+            return null;
         }
 
         public static GorillaKeyboardButton GetKey(int key)
         {
-            return keys[key.ToString()];
+            var s = key.ToString();
+            if (keys.TryGetValue(s, out var btn)) return btn;
+            return null;
         }
 
         public static Traverse Field(string fieldName)

@@ -1,9 +1,9 @@
-﻿using BepInEx;
+﻿using System;
+using System.Reflection;
+using BepInEx;
 using BepInEx.Configuration;
 using ComputerPlusPlus.Screens;
 using ComputerPlusPlus.Tools;
-using System;
-using System.Reflection;
 
 namespace ComputerPlusPlus
 {
@@ -12,13 +12,13 @@ namespace ComputerPlusPlus
     public class Plugin : BaseUnityPlugin
     {
         public static Plugin Instance { get; private set; }
-        public ConfigFile Config;
+        public ConfigFile ConfigPath;
 
         void Awake()
         {
             Instance = this;
             Logging.Init();
-            Config = new ConfigFile(Paths.ConfigPath + "\\" + PluginInfo.Name + ".cfg", true);
+            ConfigPath = new ConfigFile(Paths.ConfigPath + "\\" + PluginInfo.Name + ".cfg", true);
         }
 
         void OnEnable()
@@ -37,7 +37,14 @@ namespace ComputerPlusPlus
 
         public void Setup()
         {
-            ComputerManager.Instance = this.gameObject.AddComponent<ComputerManager>();
+            // MINIMAL FIX: avoid double-creation / duplicate registration if Setup runs twice
+            if (ComputerManager.Instance != null)
+            {
+                Logging.Info("ComputerManager already exists — skipping Setup to avoid duplicate registrations.");
+                return;
+            }
+
+            ComputerManager.Instance = gameObject.AddComponent<ComputerManager>();
             ComputerManager.Instance.RegisterScreen(new RoomScreen());
             ComputerManager.Instance.RegisterScreen(new NameScreen());
             ComputerManager.Instance.RegisterScreen(new ColorScreen());
@@ -50,30 +57,69 @@ namespace ComputerPlusPlus
             ComputerManager.Instance.RegisterScreen(new GroupScreen());
             ComputerManager.Instance.RegisterScreen(new ItemsScreen());
 
-            foreach (var assembly in GetAssemblies())
+            var assemblies = GetAssemblies();
+            if (assemblies != null)
             {
-                //exclude the executing assembly
-                if (assembly == typeof(Plugin).Assembly)
-                    continue;
-                foreach (var type in GetTypes(assembly))
+                foreach (var assembly in assemblies)
                 {
-                    foreach (var iface in GetInterfaces(type))
+                    //exclude the executing assembly
+                    if (assembly == typeof(Plugin).Assembly)
+                        continue;
+                    foreach (var type in GetTypes(assembly))
                     {
-                        try
+                        foreach (var iface in GetInterfaces(type))
                         {
-                            if (iface.FullName == typeof(IScreen).FullName)
+                            try
                             {
-                                var screen = Activator.CreateInstance(type) as IScreen;
-                                Logging.Debug($"Registering Screen: {screen.Title} from type {type.Name}");
-                                ComputerManager.Instance.RegisterScreen(screen);
+                                if (iface.FullName == typeof(IScreen).FullName)
+                                {
+                                    var screen = Activator.CreateInstance(type) as IScreen;
+                                    // MINIMAL FIX: guard against null (bad types) before using or registering
+                                    if (screen == null)
+                                    {
+                                        Logging.Debug($"Skipping null screen instance for type {type.FullName}");
+                                        continue;
+                                    }
+
+                                    try
+                                    {
+                                        Logging.Debug($"Registering Screen: {screen.Title} from type {type.Name}");
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        // If accessing Title throws, log and continue to registering safely
+                                        Logging.Exception(ex);
+                                    }
+
+                                    try
+                                    {
+                                        ComputerManager.Instance.RegisterScreen(screen);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        // If registration throws (e.g., duplicate key inside RegisterScreen), log and continue
+                                        Logging.Exception(ex);
+                                    }
+                                }
                             }
+                            catch (Exception e) { Logging.Exception(e); }
                         }
-                        catch (Exception e) { Logging.Exception(e); }
                     }
                 }
             }
+
             ComputerManager.Instance.RegisterScreen(new VersionScreen());
-            ComputerManager.Instance.Initialize();
+
+            // MINIMAL FIX: guard Initialize so exceptions inside it don't crash startup
+            try
+            {
+                ComputerManager.Instance.Initialize();
+            }
+            catch (Exception initEx)
+            {
+                Logging.Exception(initEx);
+                Logging.Fatal("ComputerManager.Initialize() threw an exception — initialization may be incomplete.");
+            }
         }
 
         public Assembly[] GetAssemblies()

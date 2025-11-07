@@ -1,9 +1,6 @@
 ﻿using GorillaNetworking;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace ComputerPlusPlus
+namespace ComputerPlusPlus.Screens
 {
     public interface IScreen
     {

@@ -1,6 +1,5 @@
-﻿using HarmonyLib;
-using System;
-using System.Reflection;
+﻿using System.Reflection;
+using HarmonyLib;
 
 namespace ComputerPlusPlus
 {

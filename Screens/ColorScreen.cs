@@ -1,10 +1,6 @@
 ﻿using ComputerPlusPlus.Tools;
 using GorillaNetworking;
 using HarmonyLib;
-using Photon.Pun;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using UnityEngine;
 
 namespace ComputerPlusPlus.Screens
@@ -99,7 +95,8 @@ namespace ComputerPlusPlus.Screens
         }
 
 
-        public void Start() { 
+        public void Start()
+        {
             computerTraverse = Traverse.Create(GorillaComputer.instance);
             colorCursorLine = computerTraverse.Field("colorCursorLine");
         }
