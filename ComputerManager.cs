@@ -23,8 +23,8 @@ namespace ComputerPlusPlus
         public Material backgroundMaterial;
 
         // Text
-        public TMP_Text screenText, originalScreenText;
-        public TMP_Text functionsText, originalFunctionText;
+        public TextMeshPro screenText, originalScreenText;
+        public TextMeshPro functionsText, originalFunctionText;
 
         public const string Divider = "==========================================\n";
         string screenContent, functionsContent;
@@ -81,7 +81,7 @@ namespace ComputerPlusPlus
 
             try
             {
-                foreach (var button in FindObjectsOfType<GorillaKeyboardButton>())
+                foreach (var button in UnityEngine.Object.FindObjectsByType<GorillaKeyboardButton>(UnityEngine.FindObjectsSortMode.None))
                 {
                     if (button == null) continue;
                     var keyStr = button.characterString;
@@ -107,7 +107,7 @@ namespace ComputerPlusPlus
             {
                 try
                 {
-                    var origScreenTextObj = ComputerTraverse.Field("screenText").GetValue<TMP_Text>();
+                    var origScreenTextObj = ComputerTraverse.Field("Data").GetValue<TextMeshPro>();
                     originalScreenText = origScreenTextObj;
                 }
                 catch (Exception ex)
@@ -118,7 +118,7 @@ namespace ComputerPlusPlus
 
                 try
                 {
-                    var origFuncTextObj = ComputerTraverse.Field("functionSelectText").GetValue<TMP_Text>();
+                    var origFuncTextObj = ComputerTraverse.Field("FunctionSelect").GetValue<TextMeshPro>();
                     originalFunctionText = origFuncTextObj;
                 }
                 catch (Exception ex)
@@ -200,9 +200,9 @@ namespace ComputerPlusPlus
             }
         }
 
-        public TMP_Text CloneAndScale(TMP_Text original, float scaleDelta = -0.1f)
+        public TextMeshPro CloneAndScale(TextMeshPro original, float scaleDelta = -0.1f)
         {
-            TMP_Text clone = Instantiate(original);
+            TextMeshPro clone = Instantiate(original);
             clone.transform.SetParent(original.transform.parent);
             clone.transform.localPosition = original.transform.localPosition;
             clone.transform.localScale = original.transform.localScale;
@@ -216,7 +216,7 @@ namespace ComputerPlusPlus
                 clone.rectTransform.localScale.z * (1 + scaleDelta));
             original.enabled = false;
             clone.fontSize = 10;
-            clone.enableWordWrapping = false;
+            clone.textWrappingMode = TextWrappingModes.NoWrap;
             clone.richText = true;
             clone.name = "C++ " + original.name;
             return clone;
