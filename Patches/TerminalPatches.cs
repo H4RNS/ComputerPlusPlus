@@ -8,34 +8,34 @@ using UnityEngine;
 
 namespace ComputerPlusPlus.Patches
 {
-    [HarmonyPatch(typeof(GorillaComputerTerminal), "LateUpdate")]
-    static class TerminalPatch
+  [HarmonyPatch(typeof(GorillaComputerTerminal), "Init")]
+static class TerminalPatch
+{
+    static List<GorillaComputerTerminal> gottem = new List<GorillaComputerTerminal>();
+
+    private static void Postfix(GorillaComputerTerminal __instance)
     {
-        static List<GorillaComputerTerminal> gottem = new List<GorillaComputerTerminal>();
-
-        private static void Postfix(GorillaComputerTerminal __instance)
+        if (!gottem.Contains(__instance))
         {
-            if (!gottem.Contains(__instance))
-            {
-                gottem.Add(__instance);
-                var screenText = ComputerManager.Instance.CloneAndScale(__instance.myScreenText);
-                var funcText = ComputerManager.Instance.CloneAndScale(__instance.myFunctionText);
-                Logging.Debug("==========================================");
-                Logging.Debug("screenText: " + (screenText == null));
-                Logging.Debug("funcText: " + (funcText == null));
+            gottem.Add(__instance);
+            var screenText = ComputerManager.Instance.CloneAndScale(__instance.myScreenText);
+            var funcText = ComputerManager.Instance.CloneAndScale(__instance.myFunctionText);
+            Logging.Debug("==========================================");
+            Logging.Debug("screenText: " + (screenText == null));
+            Logging.Debug("funcText: " + (funcText == null));
 
-                var mirror = __instance.gameObject.AddComponent<ComputerMirror>();
-                mirror.screenText = screenText;
-                mirror.functionsText = funcText;
-                mirror.originalScreenText = __instance.myScreenText;
-                mirror.originalFunctionsText = __instance.myFunctionText;
-            }
-            else
-            {
-                __instance.GetComponent<ComputerMirror>().UpdateText();
-            }
+            var mirror = __instance.gameObject.AddComponent<ComputerMirror>();
+            mirror.screenText = screenText;
+            mirror.functionsText = funcText;
+            mirror.originalScreenText = __instance.myScreenText;
+            mirror.originalFunctionsText = __instance.myFunctionText;
+        }
+        else
+        {
+            __instance.GetComponent<ComputerMirror>().UpdateText();
         }
     }
+}
 
     public class ComputerMirror : MonoBehaviour
     {

@@ -342,8 +342,6 @@ namespace ComputerPlusPlus
             }
         }
 
-
-
         void OnDisable()
         {
             if (screenText != null) screenText.enabled = false;

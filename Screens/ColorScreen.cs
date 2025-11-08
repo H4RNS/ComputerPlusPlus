@@ -94,7 +94,6 @@ namespace ComputerPlusPlus.Screens
             }
         }
 
-
         public void Start()
         {
             computerTraverse = Traverse.Create(GorillaComputer.instance);
